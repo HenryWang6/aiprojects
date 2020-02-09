@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="b8f3d7cd-e204-4cc2-a487-0573e3547a08" name="Default Changelist" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ProjectId" id="1XPLVTKmjyyeyM6R2KwUSmro7mq" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="settings.editor.selected.configurable" value="editor.preferences.fonts.default" />
+  </component>
+  <component name="SvnConfiguration">
+    <configuration>$USER_HOME$/.subversion</configuration>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="b8f3d7cd-e204-4cc2-a487-0573e3547a08" name="Default Changelist" comment="" />
+      <created>1580942806958</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1580942806958</updated>
+      <workItem from="1580942819458" duration="3678000" />
+      <workItem from="1581220740462" duration="1595000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="215" y="0" key="SettingsEditor" timestamp="1580948601757">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state x="215" y="0" key="SettingsEditor/0.0.1440.900@0.0.1440.900" timestamp="1580948601757" />
+    <state x="229" y="65" key="SettingsEditor/0.23.1440.807@0.23.1440.807" timestamp="1580942997328" />
+    <state x="0" y="236" key="com.intellij.ide.util.TipDialog" timestamp="1581220756032">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state x="0" y="236" key="com.intellij.ide.util.TipDialog/0.0.1920.1080@0.0.1920.1080" timestamp="1581220756032" />
+    <state x="0" y="199" key="com.intellij.ide.util.TipDialog/0.23.1440.807@0.23.1440.807" timestamp="1580942925398" />
+  </component>
+</project>
