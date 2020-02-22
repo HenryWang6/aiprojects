@@ -278,12 +278,15 @@ class CornersProblem(search.SearchProblem):
         "*** YOUR CODE HERE ***"
 
         # For display purposes
+        # same as PositionSearchProblem class
         self._visited, self._visitedlist, self._expanded = {}, [], 0
 
     def getStartState(self):
         "Returns the start state (in your state space, not the full Pacman state space)"
         "*** YOUR CODE HERE ***"
         # return position, how many corners have been visited
+        # our idea is state = (position, how many corners have been visited)
+        # so start state is an empty list
         return self.startingPosition, []
 
     def isGoalState(self, state):
@@ -319,12 +322,14 @@ class CornersProblem(search.SearchProblem):
             #   hitsWall = self.walls[nextx][nexty]
 
             "*** YOUR CODE HERE ***"
-
+            # if a new position is not a wall, only update position
+            # if a new position is not a wall and is an unvisited corner, update 'corner' of state
             currentPosition, corners = state
             x, y = currentPosition
             dx, dy = Actions.directionToVector(action)
             nextx, nexty = int(x + dx), int(y + dy)
             newcorners = list(corners)
+            # if next position is not a wall
             if not self.walls[nextx][nexty]:
                 nextPosition = (nextx, nexty)
                 # if next position is an unvisited corner, update corresponding state, otherwise only update positions
@@ -335,6 +340,10 @@ class CornersProblem(search.SearchProblem):
 
 
         self._expanded += 1
+        # if state not in self._visited:
+        #     self._visited[state] = True
+        #     self._visitedlist.append(state)
+
         return successors
 
     def getCostOfActions(self, actions):
@@ -379,16 +388,17 @@ def cornersHeuristic(state, problem):
             unvisited_corners.append(corner)
 
     # calculate manhattanDistance from current position to the closest corner
-    # and then calculate distances between unvisited corners
+    # and then calculate distances between the closest corner and other unvisited corners
     # the sum of these distances is a heuristic
-    for corner in unvisited_corners:
-        remove_corner = corner
+    while len(unvisited_corners)>0:
+        remove_corner = unvisited_corners[0]
         minmum_dis = sys.maxint
         for corner_h in unvisited_corners:
             distance = util.manhattanDistance(position, corner_h)
             if distance < minmum_dis:
                 remove_corner = corner_h
                 minmum_dis = distance
+
         heuristic += minmum_dis
         position = remove_corner
         unvisited_corners.remove(remove_corner)
@@ -483,7 +493,50 @@ def foodHeuristic(state, problem):
     """
     position, foodGrid = state
     "*** YOUR CODE HERE ***"
-    return 0
+    #
+
+    import sys
+    foods = foodGrid.asList()
+    # goal state
+    if len(foods) == 0:
+        return 0
+
+    #find the farest food and caluclate the real distance
+    first_food = foods[0]
+    max_dis = -sys.maxint
+    for food in foods:
+        distance = util.manhattanDistance(position, food)
+        if distance > max_dis:
+            first_food = food
+            max_dis = distance
+    heuristic = mazeDistance(first_food,position,problem.startingGameState)
+
+    # x,y = state[0]
+
+    #our first idea is to higher heuristic if the number of adjacent foods is lower.
+    #we try to navigate pacman to the location with more foods, but it failed
+    #result:
+    # only check up, down, left and right positions:
+    # manhattanDistance +=1 Path found with total cost of 60 in 3.0 seconds, Search nodes expanded: 5445
+    # manhattanDistance +=2,3 Path found with total cost of 60 in 3.8 seconds, Search nodes expanded: 5458
+    #manhattanDistance +=4 Path found with total cost of 60 in 3.0 seconds, Search nodes expanded: 5452
+    #manhattanDistance +=5 Path found with total cost of 60 in 3.9 seconds, Search nodes expanded: 5457
+    #mazeDistance +=5 Path found with total cost of 120 in 97.7 seconds, Search nodes expanded: 243
+    #mazeDistance +=4 Path found with total cost of 120 in 106.4 seconds, Search nodes expanded: 246 scroe 510
+    #mazeDistance +=1 Path found with total cost of 120 in 198.6 seconds, Search nodes expanded: 246 scroe 510
+    #mazeDistance +=3 Path found with total cost of 120 in 220.9 seconds, Search nodes expanded: 240 scroe 510
+
+    #check all around positions Path found with total cost of 60 in 3.3 seconds Search nodes expanded: 5470
+    # if (x+1,y) not in foods:
+    #     heuristic+=3
+    # if (x,y+1) not in foods:
+    #     heuristic+=3
+    # if (x-1,y) not in foods:
+    #     heuristic+=3
+    # if (x,y-1) not in foods:
+    #     heuristic+=3
+
+    return heuristic
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
@@ -511,7 +564,9 @@ class ClosestDotSearchAgent(SearchAgent):
         problem = AnyFoodSearchProblem(gameState)
 
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # best search function ucs
+        return search.uniformCostSearch(problem)
+        # util.raiseNotDefined()
 
 class AnyFoodSearchProblem(PositionSearchProblem):
     """
@@ -547,7 +602,8 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         x,y = state
 
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return True if state in self.food.asList() else False
+        # util.raiseNotDefined()
 
 ##################
 # Mini-contest 1 #
@@ -559,6 +615,14 @@ class ApproximateSearchAgent(Agent):
     def registerInitialState(self, state):
         "This method is called before any moves are made."
         "*** YOUR CODE HERE ***"
+        self.dp = {}
+        starttime = time.time()
+        problem = FoodSearchProblem(state) # Makes a new search problem
+        self.actions  = self.ApproximateSearch(problem) # Find a path
+        totalCost = problem.getCostOfActions(self.actions)
+        print('Path found with total cost of %d in %.1f seconds' % (totalCost, time.time() - starttime))
+        if '_expanded' in dir(problem): print('Search nodes expanded: %d' % problem._expanded)
+
 
     def getAction(self, state):
         """
@@ -567,7 +631,47 @@ class ApproximateSearchAgent(Agent):
         Directions.{North, South, East, West, Stop}
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        if 'actionIndex' not in dir(self): self.actionIndex = 0
+        i = self.actionIndex
+        self.actionIndex += 1
+        if i < len(self.actions):
+            return self.actions[i]
+        else:
+            return Directions.STOP
+
+    def ApproximateSearch(self, problem):
+
+        if problem.isGoalState(problem.getStartState()):
+            return []
+        frontier = util.PriorityQueue()
+        frontier.push((problem.getStartState(), [], 0), 0)
+        explored_set = []
+        while not frontier.isEmpty():
+            leaf_node = frontier.pop()
+            if problem.isGoalState(leaf_node[0]):
+                return leaf_node[1]
+            if explored_set.count(leaf_node[0]) == 0:
+                explored_set.append(leaf_node[0])
+                expand_nodes = problem.getSuccessors(leaf_node[0])
+                for result_node in expand_nodes:
+                    heuristic_cost = result_node[2] + self.ApproximateHeuristic(result_node[0], problem) + leaf_node[2]
+                    actions = list(leaf_node[1])
+                    actions.append(result_node[1])
+                    frontier.push((result_node[0], actions, leaf_node[2] + result_node[2]), heuristic_cost)
+
+        return []
+
+    def ApproximateHeuristic(self, state, problem):
+        position, foodGrid = state
+        print foodGrid.asList()
+        for food in foodGrid.asList():
+            if food[0] == position[0] and food[1] == position[1]:
+                return 1
+            else:
+                return 0
+
+
+
 
 def mazeDistance(point1, point2, gameState):
     """

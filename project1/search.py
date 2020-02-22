@@ -87,10 +87,7 @@ def depthFirstSearch(problem):
     """
     # explored_set: record all visited nodes
     # solution: a map, key is state, value is actions to move to this state from start state
-    # frontier: fringe
-    print "Start:", problem.getStartState()
-    print "Is the start a goal?", problem.isGoalState(problem.getStartState())
-
+    # frontier: fringe (state)
     if problem.isGoalState(problem.getStartState()):
         return []
     explored_set = []
@@ -98,13 +95,21 @@ def depthFirstSearch(problem):
     frontier = util.Stack()
     frontier.push(problem.getStartState())
     while not frontier.isEmpty():
+        # leaf_node: (state)
         leaf_node = frontier.pop()
         if problem.isGoalState(leaf_node):
             return solution[leaf_node]
+        # add this node to the list of visited nodes
         explored_set.append(leaf_node)
+        # for each child nodes
         expand_nodes = problem.getSuccessors(leaf_node)
         for result_node in expand_nodes:
             # result_node: state, direction, cost
+            # check if this state in frontier
+            for state,actions in frontier.list:
+                if result_node[0] == state:
+                    continue
+            # check if this state in list of visited nodes
             if explored_set.count(result_node[0]) == 0:
                 frontier.push(result_node[0])
                 solution[result_node[0]] = list(solution[leaf_node])
@@ -117,50 +122,103 @@ def breadthFirstSearch(problem):
     Search the shallowest nodes in the search tree first.
     [2nd Edition: p 73, 3rd Edition: p 82]
     """
+    # pseudocode: book p82
 
-    # explored_set: record all visited nodes
-    # solution: a map, key is state, value is actions to move to this state from start state
-    # frontier: fringe (state, actions)
+    # solution: a map, key is state, value is actions to move to this state from start state.
+    # solution only applies to q1, for remaining question, we only need to use frontier
+    # solution = {problem.getStartState(): []}
+
+    # start position is goal state
     if problem.isGoalState(problem.getStartState()):
         return []
+
+    # explored_set: record all visited nodes, graph search version
     explored_set = []
-    # solution = {problem.getStartState(): []}
+
+    # frontier: fringe (state, actions)
     frontier = util.Queue()
     frontier.push((problem.getStartState(), []))
     while not frontier.isEmpty():
+        # leaf_node: (state, actions from start to this state)
         leaf_node = frontier.pop()
         if problem.isGoalState(leaf_node[0]):
             return leaf_node[1]
-        elif leaf_node[0] not in explored_set:
+
+        # this version can also solve problem, but expands more search nodes
+        # explored_set.append(leaf_node[0])
+        #
+        #
+        # expand_nodes = problem.getSuccessors(leaf_node[0])
+        #
+        # for result_node in expand_nodes:
+        #     # check if this state in frontier
+        #     for state,actions in frontier.list:
+        #         if result_node[0] == state:
+        #             continue
+        #     # check if this state in list of visited nodes
+        #     if explored_set.count(result_node[0]) == 0:
+        #         actions = list(leaf_node[1])
+        #         actions.append(result_node[1])
+        #         frontier.push((result_node[0], actions))
+        # #
+
+        # check if this state in list of visited nodes
+        if leaf_node[0] not in explored_set:
+            # check if this state in frontier
+            for state,actions in frontier.list:
+                if leaf_node[0] == state:
+                    continue
+            # add this node to the list of visited nodes
             explored_set.append(leaf_node[0])
             expand_nodes = problem.getSuccessors(leaf_node[0])
+            # result_node (state,action)
             for result_node in expand_nodes:
+                # for each child nodes
                 actions = list(leaf_node[1])
                 actions.append(result_node[1])
                 frontier.push((result_node[0], actions))
+        #
     return []
 
 
 def uniformCostSearch(problem):
     "Search the node of least total cost first. "
+    # pseudocode: book p84
+    # the definition of explored_set and solution is same as q1.
     if problem.isGoalState(problem.getStartState()):
         return []
-    node = problem.getStartState()
     frontier = util.PriorityQueue()
-    frontier.push(node, 0)
+    # frontier: a priority queue ordered by PATH-COST, with node as the only element
+    frontier.push(problem.getStartState(), 0)
     explored_set = []
     solution = {problem.getStartState(): []}
     while not frontier.isEmpty():
         leaf_node = frontier.pop()
         if problem.isGoalState(leaf_node):
             return solution[leaf_node]
-        if explored_set.count(leaf_node) == 0:
-            explored_set.append(leaf_node)
-            expand_nodes = problem.getSuccessors(leaf_node)
-            for result_node in expand_nodes:
+
+    #
+        explored_set.append(leaf_node)
+        expand_nodes = problem.getSuccessors(leaf_node)
+        for result_node in expand_nodes:
+            # I check three commands and this state will never be in frontier
+            # check if this state in list of visited nodes
+            if explored_set.count(result_node[0]) == 0:
                 solution[result_node[0]] = list(solution[leaf_node])
                 solution[result_node[0]].append(result_node[1])
                 frontier.push(result_node[0], problem.getCostOfActions(solution[result_node[0]]))
+    #
+
+
+        #
+        # if explored_set.count(leaf_node) == 0:
+        #     explored_set.append(leaf_node)
+        #     expand_nodes = problem.getSuccessors(leaf_node)
+        #     for result_node in expand_nodes:
+        #         solution[result_node[0]] = list(solution[leaf_node])
+        #         solution[result_node[0]].append(result_node[1])
+        #         frontier.push(result_node[0], problem.getCostOfActions(solution[result_node[0]]))
+        #
 
     return []
 
@@ -175,9 +233,10 @@ def nullHeuristic(state, problem=None):
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     "Search the node that has the lowest combined cost and heuristic first."
+    # pseudocode: book p99. its a recursive method. but we only need to change part of q1, q2 q3 to achieve astar
     # explored_set: record all visited nodes
     # solution: a map, key is state, value is (actions to move to this state from start state, heuristic_cost = g(n)+h(n))
-    # frontier: fringe (state, heuristic_cost = g(n)+h(n))
+    # frontier: fringe ((state, actions, cost), heuristic_cost = g(n)+h(n))
     if problem.isGoalState(problem.getStartState()):
         return []
     frontier = util.PriorityQueue()
@@ -189,6 +248,9 @@ def aStarSearch(problem, heuristic=nullHeuristic):
         if problem.isGoalState(leaf_node[0]):
             return leaf_node[1]
         if explored_set.count(leaf_node[0]) == 0:
+            for state in frontier.heap:
+                if leaf_node[0] == state[1][0]:
+                    continue
             explored_set.append(leaf_node[0])
             expand_nodes = problem.getSuccessors(leaf_node[0])
             for result_node in expand_nodes:
@@ -196,9 +258,10 @@ def aStarSearch(problem, heuristic=nullHeuristic):
                 # print result_node
                 # calculate g(n)+h(n) g(n) = result_node[2] + leaf_node[2] h(n)=heuristic(result_node[0], problem)
                 heuristic_cost = result_node[2] + heuristic(result_node[0], problem) + leaf_node[2]
+                #actions
                 actions = list(leaf_node[1])
                 actions.append(result_node[1])
-                # push (state, actions, g(n)+h(n)) Priority:g(n)+h(n)
+                # push (state, actions, g(n)) Priority:g(n)+h(n)
                 frontier.push((result_node[0], actions, leaf_node[2] + result_node[2]), heuristic_cost)
 
     return []
