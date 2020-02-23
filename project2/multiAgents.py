@@ -8,7 +8,7 @@
 
 from util import manhattanDistance
 from game import Directions
-import random, util
+import random, util, sys
 
 from game import Agent
 
@@ -86,7 +86,7 @@ class ReflexAgent(Agent):
         # calculate penalty according to distance to ghosts
         for i in range(len(newGhost_dis)):
             if newGhost_dis[i] > 0:
-                penalty[i] = - 5.0 / (newGhost_dis[i] / 2.0) ** 2
+                penalty[i] = - 25.0 / ((newGhost_dis[i] / 2.0) ** 2)
 
             # if dynamic_ghost_dis != 0:
             # score += 20/dynamic_ghost_dis
@@ -393,8 +393,50 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
             else:
                 # the next agent is next ghost
                 min_value = self.exp_value(successorGameState, agentIndex + 1, depth)
-            v += min_value * (1 / len(actions))
+            v += min_value * (1.0 / float(len(actions)))
         return v
+
+
+'''def betterEvaluationFunction(currentGameState):
+    """
+    Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
+    evaluation function (question 5).
+
+    DESCRIPTION: <write something here so we know what you did>
+    """
+    # TODO: optimize the evaluation function
+    "*** YOUR CODE HERE ***"
+    newPos = currentGameState.getPacmanPosition()
+    newFood = currentGameState.getFood()
+    newGhostStates = currentGameState.getGhostStates()
+    newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
+
+    "*** YOUR CODE HERE ***"
+    newFood_dis = [manhattanDistance(newPos, xy) for xy in newFood.asList()]
+    newGhosts_pos = [newGhostStates[i].getPosition() for i in range(len(newGhostStates))]
+    # ghost distance seperate store
+    newGhost_dis = [manhattanDistance(newPos, ghostxy) for ghostxy in newGhosts_pos]
+    # encourage for eating food
+    encourage = 0
+    # penalty for avoiding ghost
+    penalty = [i * 0 for i in range(len(newGhost_dis))]
+
+    import sys
+    # eliminate penalty if ghost doesn't exist.
+    for i in range(len(newScaredTimes)):
+        if newScaredTimes[i] > 0:
+            newGhost_dis[i] = sys.maxint
+    # calculate penalty according to distance to ghosts
+    for i in range(len(newGhost_dis)):
+        if newGhost_dis[i] > 0:
+            penalty[i] = - 25.0 / ((newGhost_dis[i] / 2.0) ** 2)
+
+        # if dynamic_ghost_dis != 0:
+        # score += 20/dynamic_ghost_dis
+    # calculate encourage according to min food distance.
+    if len(newFood_dis):
+        encourage = 10.0 / min(newFood_dis)
+    return currentGameState.getScore() + encourage + sum(penalty)'''
 
 
 def betterEvaluationFunction(currentGameState):
@@ -406,42 +448,91 @@ def betterEvaluationFunction(currentGameState):
     """
     # TODO: optimize the evaluation function
     "*** YOUR CODE HERE ***"
+    import sys, searchAgents
 
-    newPos = currentGameState.getPacmanPosition()
-    newFood = currentGameState.getFood()
-    newGhostStates = currentGameState.getGhostStates()
-    newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
-    newFood_dis = [manhattanDistance(newPos, xy) for xy in newFood.asList()]
-    newGhosts_pos = [newGhostStates[i].getPosition() for i in range(len(newGhostStates))]
-    newGhost_dis = [manhattanDistance(newPos, ghostxy) for ghostxy in newGhosts_pos]
+    pacmanPos = currentGameState.getPacmanPosition()
+    foodPos = currentGameState.getFood().asList()
+    foodDis = [manhattanDistance(pacmanPos, xy) for xy in foodPos]
+    ghostStates = currentGameState.getGhostStates()
+    scaredTimes = [ghostState.scaredTimer for ghostState in ghostStates]
+    ghostsPos_float = [ghostStates[i].getPosition() for i in range(len(ghostStates))]
+    ghostsPos = []
+    for each in ghostsPos_float:
+        xy = []
+        for num in each:
+            xy.append(int(num))
+        ghostsPos.append(xy)
+    ghostsMazeDis = [searchAgents.mazeDistance(pacmanPos, ghostxy, currentGameState) for ghostxy in ghostsPos]
+    # ghostsDis = [manhattanDistance(pacmanPos, ghostxy) for ghostxy in ghostsPos]
+    capsulesPos = currentGameState.getCapsules()
+    capsulesMazeDis = [searchAgents.mazeDistance(pacmanPos, capsulePos, currentGameState) for capsulePos in capsulesPos]
+
+    # capsulesDis = [manhattanDistance(pacmanPos, xy) for xy in capsulesPos]
+    # minCapsuleDis = min(capsulesDis)
+
     encourage = 0
-    penalty = [i * 0 for i in range(len(newGhost_dis))]
+    ghostPenalty = [i * 0 for i in range(len(ghostStates))]
+    capsulesPenalty = -50.0
 
-    # currentGhostPos = currentGameState.getGhostPositions()[0]
-    # currentPos = currentGameState.getPacmanPosition()
+    # when Ghosts are scared
+    for i in range(len(scaredTimes)):
+        if scaredTimes[i] > 0:
+            ghostsMazeDis[i] = sys.maxint
 
-    # dynamic_ghost_dis = manhattanDistance(newPos, newGhostPos) - manhattanDistance(currentPos, currentGhostPos)
-    import sys
-    for i in range(len(newScaredTimes)):
-        if newScaredTimes[i] > 0:
-            newGhost_dis[i] = sys.maxint
+    # penalty from ghost
+    for i in range(len(ghostStates)):
+        if ghostsMazeDis[i] > 0 and ghostsMazeDis[i] <= 1:
+            ghostPenalty[i] = sys.maxint
+        elif ghostsMazeDis[i] > 1:
+            ghostPenalty[i] = - 25.0 / ((ghostsMazeDis[i] / 2.0) ** 5)
 
-    for i in range(len(newGhost_dis)):
-        if newGhost_dis[i] > 0:
-            penalty[i] = - 5.0 / (newGhost_dis[i] / 2.0) ** 2
+    # encourage from food
+    if len(foodDis):
+        minFoodDis = min(foodDis)
+        # meanFoodDis = float(sum(foodDis))/len(foodDis)
+        encourage = 10.0 / minFoodDis
+        if foodDis.count(minFoodDis) > 1 and minFoodDis >= 2:
+            indexes = [i for i, v in enumerate(foodDis) if v == minFoodDis]
+            minDisfoodsPos = [foodPos[index] for index in indexes]
+            minFoodMazeDis = min(
+                [searchAgents.mazeDistance(pacmanPos, minDisfoodPos, currentGameState) for minDisfoodPos in
+                 minDisfoodsPos])
+            encourage = (5.0 / minFoodDis + 15.0 / minFoodMazeDis) / 2.0
 
-        # if dynamic_ghost_dis != 0:
-        # score += 20/dynamic_ghost_dis
+        # minFoodMazeDis = min([searchAgents.mazeDistance(pacmanPos, foodxy, currentGameState) for foodxy in foodPos])
+        # meanFoodMazeDis = float(sum([searchAgents.mazeDistance(pacmanPos, foodxy, currentGameState) for foodxy in foodPos])) / len(foodPos)
+        # encourage = 10.0 / minFoodDis + 5.0 / minFoodMazeDis
 
-    if len(newFood_dis):
-        encourage = 10.0 / min(newFood_dis)
+    # penalty from not eating capsule
+    if len(capsulesMazeDis):
+        minCapsuleMazeDis = min(capsulesMazeDis)
+        if minCapsuleMazeDis <= 2 * ghostsMazeDis[0] and minCapsuleMazeDis <= 2 * ghostsMazeDis[
+            1] and minCapsuleMazeDis <= 3 * minFoodDis:
+            capsulesPenalty = - minCapsuleMazeDis**2 - len(capsulesPos)*40.0
 
-    penalty = sum(penalty)
-    return currentGameState.getScore() * 0.8 + encourage + penalty
+    return currentGameState.getScore() + encourage + sum(ghostPenalty) + capsulesPenalty
 
 
 # Abbreviation
 better = betterEvaluationFunction
+
+'''def directDistance(xy1, xy2):
+    # return the direct distance
+    import math
+    return math.sqrt((xy1[0]-xy2[0])**2 + (xy2[1]-xy2[1])**2)
+
+def mazeDistancetoDenseFood(currentPos, foodPos, currentGameState):
+    x = 0
+    y = 0
+
+    for food in foodPos:
+        #print food
+        x += food[0]
+        y += food[0]
+    xy = (x//len(foodPos), y//len(foodPos))
+
+    import searchAgents
+    return searchAgents.mazeDistance(currentPos, xy, currentGameState)'''
 
 
 class ContestAgent(MultiAgentSearchAgent):
