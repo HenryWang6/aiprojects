@@ -114,6 +114,7 @@ def depthFirstSearch(problem):
                 frontier.push(result_node[0])
                 solution[result_node[0]] = list(solution[leaf_node])
                 solution[result_node[0]].append(result_node[1])
+          	print solution
     return []
 
 
