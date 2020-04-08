@@ -132,5 +132,4 @@ class GreedyBustersAgent(BustersAgent):
       if distance<closestDis:
         closestDis = distance
         returnAction = action
-
     return returnAction
