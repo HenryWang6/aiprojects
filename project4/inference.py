@@ -494,51 +494,6 @@ class JointParticleFilter:
                 newParticles.append(newParticle)
             self.particles = newParticles
 
-        '''
-        def putinJail(): 
-            
-            #get the index of ghost captured.
-            #return the index of ghost captured.    
-            
-            captured_ghost = [False for _ in range(self.numGhosts)]
-            for i, noisydis in enumerate(noisyDistances):
-                if noisydis is None:
-                    captured_ghost[i] = True    
-
-            # update prision particles
-            newParticles = []
-            for particle in self.particles:
-                newParticle = list(particle)
-                for i in range(self.numGhosts):
-                    for j in captured_ghost:
-                        newParticle[j] = self.getJailPosition(j)
-                newParticles.append(tuple(newParticle))
-            self.particles = newParticles
-            return captured_ghost
-
-        captured = putinJail()
-
-        dist = util.Counter()
-        for particle in self.particles:
-            likelihood = 1.0
-            for i in range(self.numGhosts):
-                if not captured[i]:
-                    trueDistance = util.manhattanDistance(particle[i], pacmanPosition)
-                    likelihood *= emissionModels[i][trueDistance]
-            dist[particle] += likelihood
-
-        # When all particles 0 weight, initialization
-        if dist.totalCount() == 0:
-            self.initializeParticles()
-            putinJail()
-        else:
-            # resample particles
-            newParticles = []
-            for particle in self.particles:
-                newParticle = list(util.sample(dist))
-                newParticles.append(tuple(newParticle))
-            self.particles = newParticles'''
-
     def getBeliefDistribution(self):
         dist = util.Counter()
         for part in self.particles:
