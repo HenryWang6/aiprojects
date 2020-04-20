@@ -455,6 +455,9 @@ class JointParticleFilter:
         # captured = [False for _ in range(self.numGhosts)]
         # Deal with Capturing Ghost
         def captureGhost():
+            """
+            Put the captured ghost into jail
+            """
             if None not in noisyDistances:
                 return
             else:
@@ -473,7 +476,7 @@ class JointParticleFilter:
         # calculate likelihood
         dist = util.Counter()
         for particle in self.particles:
-            likelihood = 0.0
+            likelihood = 1.0
             for i in range(self.numGhosts):
                 # exclude captured ghosts
                 if particle[i] != self.getJailPosition(i):
