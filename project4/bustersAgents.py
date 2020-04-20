@@ -114,7 +114,7 @@ class GreedyBustersAgent(BustersAgent):
     for ghost in livingGhostPositionDistributions:
       mostLikelyGhosts.append(ghost.argMax())
 
-    # Calculate the closes ghost's position
+    # Calculate the closest ghost's position
     closestGhostDis = 30000
     maxProbPosition =  None
     for position in mostLikelyGhosts:
